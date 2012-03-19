@@ -805,6 +805,9 @@ bool Server::checkDecrypt(ServerUser *u, const char *encrypt, char *plain, unsig
 	return false;
 }
 
+// TODO hack right into here - this is where server-side acquired positional data should be injected 
+//  the coordinates need to go into "cache" variable, len probably needs to be manipulated as well
+
 void Server::sendMessage(ServerUser *u, const char *data, int len, QByteArray &cache, bool force) {
 	if ((u->bUdp || force) && (u->sUdpSocket != INVALID_SOCKET) && u->csCrypt.isValid()) {
 #if defined(__LP64__)
@@ -870,6 +873,7 @@ void Server::sendMessage(ServerUser *u, const char *data, int len, QByteArray &c
 		emit tcpTransmit(cache,u->uiSession);
 	}
 }
+
 
 #define SENDTO \
 		if ((!pDst->bDeaf) && (!pDst->bSelfDeaf) && (pDst != u)) { \
