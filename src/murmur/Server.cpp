@@ -805,8 +805,6 @@ bool Server::checkDecrypt(ServerUser *u, const char *encrypt, char *plain, unsig
 	return false;
 }
 
-// TODO hack right into here - this is where server-side acquired positional data should be injected 
-//  the coordinates need to go into "cache" variable, len probably needs to be manipulated as well
 
 void Server::sendMessage(ServerUser *u, const char *data, int len, QByteArray &cache, bool force) {
 	if ((u->bUdp || force) && (u->sUdpSocket != INVALID_SOCKET) && u->csCrypt.isValid()) {
@@ -875,6 +873,14 @@ void Server::sendMessage(ServerUser *u, const char *data, int len, QByteArray &c
 }
 
 
+/*
+TODO: hack right into here (SENDTO) - this is where server-side acquired positional data should be injected 
+   the coordinates need to go into "qba" variable, "len" probably needs to be manipulated as well
+   "u" is the player from whom to get the coordinates, "pDst" will be the recipent of the msg (don't touch)
+   note: "qba_npos" is an always empty object, if injection is ON that line should not be executed
+   note2: you will need to check if there is already a valid position supplied (qba = ok), 
+          however coords should be overriden anyways!
+*/
 #define SENDTO \
 		if ((!pDst->bDeaf) && (!pDst->bSelfDeaf) && (pDst != u)) { \
 			if ((poslen > 0) && (pDst->ssContext == u->ssContext)) \
