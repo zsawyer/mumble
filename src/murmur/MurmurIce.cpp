@@ -295,10 +295,13 @@ void MurmurIce::removeMetaCallback(const ::Murmur::MetaCallbackPrx& prx) {
 
 void MurmurIce::addServerCallback(const ::Server* server, const ::Murmur::ServerCallbackPrx& prx) {
 	server->log(QString("Added Ice ServerCallback %1").arg(QString::fromStdString(communicator->proxyToString(prx))));
+	// not yet implemented
+	/* template
 	QList< ::Murmur::ServerCallbackPrx >& cbList = qmServerCallbacks[server->iServerNum];
 
 	if (!cbList.contains(prx))
 		cbList.append(prx);
+	*/
 }
 
 void MurmurIce::removeServerCallback(const ::Server* server, const ::Murmur::ServerCallbackPrx& prx) {
