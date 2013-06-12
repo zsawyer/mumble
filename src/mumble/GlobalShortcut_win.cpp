@@ -108,18 +108,34 @@ GlobalShortcutWin::~GlobalShortcutWin() {
 
 void GlobalShortcutWin::run() {
 	HMODULE hSelf;
-	HRESULT hr;
 	QTimer *timer;
 
-	if (FAILED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void **>(&pDI), NULL))) {
+	if (FAILED(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void **>(&pDI), NULL))) {
 		qFatal("GlobalShortcutWin: Failed to create d8input");
 		return;
 	}
 
-	/*
-	 * Wait for MainWindow's constructor to finish before we enumerate DirectInput devices.
-	 * We need to do this because adding a new device requires a Window handle. (SetCooperativeLevel())
-	 */
+	// Print the user's LowLevelHooksTimeout registry key for debugging purposes.
+	// On Windows 7 and greater, Windows will silently remove badly behaving hooks
+	// without telling the application. Users can tweak the timeout themselves
+	// with this registry key.
+	HKEY key = NULL;
+	DWORD type = 0;
+	DWORD value = 0;
+	DWORD len = sizeof(DWORD);
+	if (RegOpenKeyExA(HKEY_CURRENT_USER, "Control Panel\\Desktop", NULL, KEY_READ, &key) == ERROR_SUCCESS) {
+		LONG err = RegQueryValueExA(key, "LowLevelHooksTimeout", NULL, &type, reinterpret_cast<LPBYTE>(&value), &len);
+		if (err == ERROR_SUCCESS && type == REG_DWORD) {
+			qWarning("GlobalShortcutWin: Found LowLevelHooksTimeout with value = 0x%x", value);
+		} else if (err == ERROR_FILE_NOT_FOUND) {
+			qWarning("GlobalShortcutWin: No LowLevelHooksTimeout registry key found.");
+		} else {
+			qWarning("GlobalShortcutWin: Error looking up LowLevelHooksTimeout. (Error: 0x%x, Type: 0x%x, Value: 0x%x)", err, type, value);
+		}
+	}
+
+	// Wait for MainWindow's constructor to finish before we enumerate DirectInput devices.
+	// We need to do this because adding a new device requires a Window handle. (SetCooperativeLevel())
 	while (! g.mw)
 		this->yieldCurrentThread();
 
@@ -241,6 +257,9 @@ LRESULT CALLBACK GlobalShortcutWin::HookKeyboard(int nCode, WPARAM wParam, LPARA
 		bool suppress = gsw->handleButton(ql, !(key->flags & LLKHF_UP));
 
 		if (! suppress && g.ocIntercept) {
+			// In full-GUI-overlay always suppress
+			suppress = true;
+
 			HWND hwnd = g.ocIntercept->qgv.winId();
 
 			GUITHREADINFO gti;
@@ -253,8 +272,6 @@ LRESULT CALLBACK GlobalShortcutWin::HookKeyboard(int nCode, WPARAM wParam, LPARA
 
 			if (! nomsg)
 				::PostMessage(hwnd, msg, w, l);
-
-			suppress = true;
 		}
 
 		if (suppress)
@@ -311,6 +328,9 @@ LRESULT CALLBACK GlobalShortcutWin::HookMouse(int nCode, WPARAM wParam, LPARAM l
 		}
 
 		if (g.ocIntercept) {
+			// In full-GUI-overlay always suppress
+			suppress = true;
+
 			POINT p;
 			GetCursorPos(&p);
 
@@ -353,13 +373,11 @@ LRESULT CALLBACK GlobalShortcutWin::HookMouse(int nCode, WPARAM wParam, LPARAM l
 			::PostMessage(hwnd, msg, w, l);
 
 			QMetaObject::invokeMethod(g.ocIntercept, "updateMouse", Qt::QueuedConnection);
-
-			suppress = true;
 		}
 
 		bool down = false;
 		unsigned int btn = 0;
-		switch (wParam) {
+		switch (msg) {
 			case WM_LBUTTONDOWN:
 				down = true;
 			case WM_LBUTTONUP:
@@ -387,6 +405,7 @@ LRESULT CALLBACK GlobalShortcutWin::HookMouse(int nCode, WPARAM wParam, LPARAM l
 			ql << static_cast<unsigned int>((btn << 8) | 0x4);
 			ql << QVariant(QUuid(GUID_SysMouse));
 			bool wantsuppress = gsw->handleButton(ql, down);
+			// Do not suppress LBUTTONUP though (so suppression can be deactvated via mouse).
 			if (! suppress)
 				suppress = wantsuppress && (btn != 3);
 		}

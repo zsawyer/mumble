@@ -28,8 +28,8 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef CLIENTUSER_H_
-#define CLIENTUSER_H_
+#ifndef MUMBLE_MUMBLE_CLIENTUSER_H_
+#define MUMBLE_MUMBLE_CLIENTUSER_H_
 
 #include <QtCore/QReadWriteLock>
 
@@ -87,7 +87,6 @@ class ClientUser : public QObject, public User {
 		static void sortUsersOverlay(QList<ClientUser *> &list);
 
 		static ClientUser *get(unsigned int);
-		static ClientUser *getByHash(const QString &hash);
 		static bool isValid(unsigned int);
 		static ClientUser *add(unsigned int, QObject *p = NULL);
 		static ClientUser *match(const ClientUser *p, bool matchname = false);

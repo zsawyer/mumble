@@ -62,15 +62,23 @@ class TransactionHolder {
 			delete qsqQuery;
 			ServerDB::db->commit();
 		}
+		TransactionHolder(const TransactionHolder & other) {
+			ServerDB::db->transaction();
+			qsqQuery = other.qsqQuery ? new QSqlQuery(*other.qsqQuery) : 0;
+		}
 };
 
-QSqlDatabase *ServerDB::db;
+QSqlDatabase *ServerDB::db = NULL;
 Timer ServerDB::tLogClean;
 QString ServerDB::qsUpgradeSuffix;
 
 ServerDB::ServerDB() {
 	if (! QSqlDatabase::isDriverAvailable(Meta::mp.qsDBDriver)) {
 		qFatal("ServerDB: Database driver %s not available", qPrintable(Meta::mp.qsDBDriver));
+	}
+	if (db) {
+		// Don't hide away our previous instance. Fail hard.
+		qFatal("ServerDB has already been instantiated!");
 	}
 	db = new QSqlDatabase(QSqlDatabase::addDatabase(Meta::mp.qsDBDriver));
 
@@ -571,6 +579,16 @@ void Server::initialize() {
 		query.addBindValue(iServerNum);
 		query.addBindValue(QLatin1String("SuperUser"));
 		SQLEXEC();
+
+		int length = qrand() % 8 + 8;
+		QString pw;
+		pw.reserve(length);
+
+		while (length--)
+			pw.append(QChar(qrand() % 94 + 33));
+
+		ServerDB::setSUPW(iServerNum, pw);
+		log(QString("Password for 'SuperUser' set to '%2'").arg(pw));
 	}
 
 	SQLPREP("SELECT COUNT(*) FROM `%1acl` WHERE `server_id`=?");

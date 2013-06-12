@@ -29,8 +29,8 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef SERVER_H_
-#define SERVER_H_
+#ifndef MUMBLE_MURMUR_SERVER_H_
+#define MUMBLE_MURMUR_SERVER_H_
 
 #include <boost/function.hpp>
 #include <QtCore/QEvent>
@@ -132,6 +132,7 @@ class Server : public QThread {
 		bool bRememberChan;
 		int iMaxTextMessageLength;
 		int iMaxImageMessageLength;
+		int iOpusThreshold;
 		bool bAllowHTML;
 		QString qsPassword;
 		QString qsWelcomeText;
@@ -166,7 +167,7 @@ class Server : public QThread {
 		int iCodecBeta;
 		bool bPreferAlpha;
 		bool bOpus;
-		void recheckCodecVersions();
+		void recheckCodecVersions(ServerUser *connectingUser = 0);
 
 #ifdef USE_BONJOUR
 		void initBonjour();
@@ -175,6 +176,10 @@ class Server : public QThread {
 		// Registration, implementation in Register.cpp
 		QTimer qtTick;
 		void initRegister();
+
+	private:
+		int iChannelNestingLimit;
+
 	public slots:
 		void regSslError(const QList<QSslError> &);
 		void finished();
@@ -275,6 +280,8 @@ class Server : public QThread {
 		Server(int snum, QObject *parent = NULL);
 		~Server();
 
+		bool canNest(Channel *newParent, Channel *channel = NULL) const;
+
 		// RPC functions. Implementation in RPC.cpp
 		void connectAuthenticator(QObject *p);
 		void disconnectAuthenticator(QObject *p);
@@ -304,7 +311,7 @@ class Server : public QThread {
 
 		void contextAction(const User *, const QString &, unsigned int, int);
 	public:
-		void setUserState(User *p, Channel *parent, bool mute, bool deaf, bool suppressed, bool prioritySpeaker, const QString &comment = QString());
+		void setUserState(User *p, Channel *parent, bool mute, bool deaf, bool suppressed, bool prioritySpeaker, const QString& name = QString(), const QString &comment = QString());
 		bool setChannelState(Channel *c, Channel *parent, const QString &qsName, const QSet<Channel *> &links, const QString &desc = QString(), const int position = 0);
 		void sendTextMessage(Channel *cChannel, ServerUser *pUser, bool tree, const QString &text);
 

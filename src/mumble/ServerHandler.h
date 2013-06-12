@@ -28,8 +28,8 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef SERVERHANDLER_H_
-#define SERVERHANDLER_H_
+#ifndef MUMBLE_MUMBLE_SERVERHANDLER_H_
+#define MUMBLE_MUMBLE_SERVERHANDLER_H_
 
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
@@ -157,6 +157,7 @@ class ServerHandler : public QThread {
 		void serverConnectionClosed(QAbstractSocket::SocketError, const QString &);
 		void setSslErrors(const QList<QSslError> &);
 		void udpReady();
+	public slots:
 		void sendPing();
 };
 

@@ -370,7 +370,10 @@ ServerItem *ServerItem::fromMimeData(const QMimeData *mime, QWidget *p) {
 	QString qsFile = url.toLocalFile();
 	if (! qsFile.isEmpty()) {
 		QFile f(qsFile);
-		if (f.open(QIODevice::ReadOnly)) {
+		// Make sure we don't accidently read something big the user
+		// happened to have in his clipboard. We only want to look
+		// at small link files.
+		if (f.open(QIODevice::ReadOnly) && f.size() < 10240) {
 			QByteArray qba = f.readAll();
 			f.close();
 
@@ -506,7 +509,7 @@ void ServerItem::hideCheck() {
 
 	if (! bParent && (itType == PublicType)) {
 		if (g.s.ssFilter == Settings::ShowReachable)
-			hide = (uiPing == 0);
+			hide = (dPing == 0.0);
 		else if (g.s.ssFilter == Settings::ShowPopulated)
 			hide = (uiUsers == 0);
 	}

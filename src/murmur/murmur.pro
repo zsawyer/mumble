@@ -3,8 +3,11 @@ include(../mumble.pri)
 DEFINES *= MURMUR
 TEMPLATE	=app
 CONFIG  *= network
-CONFIG(static) {
+CONFIG(static):!macx {
 	QMAKE_LFLAGS *= -static
+}
+CONFIG(ermine) {
+	QMAKE_LFLAGS *= -Wl,-rpath,$$(MUMBLE_PREFIX)/lib:$$(MUMBLE_ICE_PREFIX)/lib
 }
 CONFIG	-= gui
 QT *= network sql xml
@@ -71,7 +74,7 @@ ice {
 	win32 {
 		slice.commands = slice2cpp --checksum -I\"$$ICE_PATH/slice\" ${QMAKE_FILE_NAME}
 	} else {
-		slice.commands = slice2cpp --checksum -I/usr/local/share/Ice -I/usr/share/Ice/slice -I/usr/share/slice -I/usr/share/Ice-3.4.1/slice/ -I/usr/share/Ice-3.3.1/slice/ -I/usr/share/Ice-3.4.2/slice/ ${QMAKE_FILE_NAME}
+		slice.commands = slice2cpp --checksum -I/usr/local/share/Ice -I/usr/share/Ice/slice -I/usr/share/slice -I/usr/share/Ice-3.4.1/slice/ -I/usr/share/Ice-3.3.1/slice/ -I/usr/share/Ice-3.4.2/slice/ -I/usr/share/Ice-3.5.0/slice/ ${QMAKE_FILE_NAME}
 	}
 	slice.input = SLICEFILES
 	slice.CONFIG *= no_link explicit_dependencies
@@ -100,17 +103,28 @@ ice {
 	}
 
 	macx {
-		INCLUDEPATH *= $$(MUMBLE_PREFIX)/ice-3.4.1/include/
-		QMAKE_LIBDIR *= $$(MUMBLE_PREFIX)/ice-3.4.1/lib/
-		slice.commands = $$(MUMBLE_PREFIX)/ice-3.4.1/bin/slice2cpp --checksum -I$$(MUMBLE_PREFIX)/ice-3.4.1/slice/ Murmur.ice
+		INCLUDEPATH *= $$(MUMBLE_PREFIX)/Ice-3.4.2/include/
+		QMAKE_LIBDIR *= $$(MUMBLE_PREFIX)/Ice-3.4.2/lib/
+		slice.commands = $$(MUMBLE_PREFIX)/Ice-3.4.2/bin/slice2cpp --checksum -I$$(MUMBLE_PREFIX)/Ice-3.4.2/slice/ Murmur.ice
 	}
 
-	unix:CONFIG(static) {
+	CONFIG(ermine) {
+		INCLUDEPATH *= $$(MUMBLE_ICE_PREFIX)/include/
+		QMAKE_LIBDIR *= $$(MUMBLE_ICE_PREFIX)/lib/
+		slice.commands = $$(MUMBLE_ICE_PREFIX)/bin/slice2cpp --checksum -I$$(MUMBLE_ICE_PREFIX)/slice/ Murmur.ice
+	}
+
+	unix:!macx:CONFIG(static) {
 		INCLUDEPATH *= /opt/Ice-3.3/include
 		QMAKE_LIBDIR *= /opt/Ice-3.3/lib
 		LIBS *= -lbz2
 		QMAKE_CXXFLAGS *= -fPIC
 		slice.commands = /opt/Ice-3.3/bin/slice2cpp --checksum -I/opt/Ice-3.3/slice Murmur.ice
+	}
+
+	macx:CONFIG(static) {
+		LIBS *= -lbz2 -liconv
+		QMAKE_CXXFLAGS *= -fPIC
 	}
 }
 

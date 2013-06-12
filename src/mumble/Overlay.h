@@ -28,8 +28,8 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef OVERLAY_H_
-#define OVERLAY_H_
+#ifndef MUMBLE_MUMBLE_OVERLAY_H_
+#define MUMBLE_MUMBLE_OVERLAY_H_
 
 #include <QtCore/QUrl>
 #include <QtGui/QGraphicsItem>
@@ -269,12 +269,10 @@ class OverlayConfig : public ConfigWidget, public Ui::OverlayConfig {
 	protected slots:
 		void on_qpbInstall_clicked();
 		void on_qpbUninstall_clicked();
-		void on_qpbShowCerts_clicked();
 		void on_qpbAdd_clicked();
 		void on_qpbRemove_clicked();
 		void on_qrbBlacklist_toggled(bool);
 		void on_qcbEnable_stateChanged(int);
-		void on_qswOverlayPage_currentChanged(int idx);
 		void on_qcbShowFps_stateChanged(int);
 		void on_qpbFpsFont_clicked();
 		void on_qpbFpsColor_clicked();
@@ -334,6 +332,8 @@ class OverlayClient : public QObject {
 		void setupScene(bool show);
 
 		bool eventFilter(QObject *, QEvent *);
+
+		void readyReadMsgInit(unsigned int length);
 
 		QList<QRectF> qlDirty;
 	protected slots:
@@ -400,8 +400,6 @@ class Overlay : public QObject {
 		void setActive(bool act);
 		void toggleShow();
 		void forceSettings();
-		void checkUpdates();
-		void fetched(QByteArray, QUrl);
 };
 
 #ifdef Q_OS_WIN

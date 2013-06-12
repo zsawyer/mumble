@@ -1,6 +1,6 @@
 include(../compiler.pri)
 
-VERSION		= 1.2.4
+VERSION		= 1.2.5
 DIST		= mumble.pri Message.h PacketDataStream.h CryptState.h Timer.h Version.h OSInfo.h SSL.h Mumble.proto
 CONFIG		+= qt thread debug_and_release warn_on
 DEFINES		*= MUMBLE_VERSION_STRING=$$VERSION
@@ -45,6 +45,10 @@ win32 {
 
 unix {
 	UNAME=$$system(uname -s)
+
+	CONFIG(static) {
+		PKG_CONFIG = pkg-config --static
+	}
 
 	CONFIG *= link_pkgconfig
 	LIBS *= -lprotobuf

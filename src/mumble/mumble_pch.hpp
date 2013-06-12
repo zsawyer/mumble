@@ -1,6 +1,6 @@
 #ifndef Q_MOC_RUN
-#ifndef _MUMBLE_PCH_H
-#define _MUMBLE_PCH_H
+#ifndef MUMBLE_MUMBLE_MUMBLE_PCH_H_
+#define MUMBLE_MUMBLE_MUMBLE_PCH_H_
 
 #define QT_NO_DEBUG_STREAM
 #define QT_NO_CAST_TO_ASCII
@@ -53,9 +53,10 @@
 #include <sndfile.h>
 #undef __int64_t
 #include <celt.h>
-#include <celt_header.h>
+#ifdef USE_SBCELT
+#include <sbcelt.h>
+#endif
 #include <speex/speex.h>
-#include <speex/speex_header.h>
 #include <speex/speex_jitter.h>
 #include <speex/speex_preprocess.h>
 #include <speex/speex_echo.h>

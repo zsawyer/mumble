@@ -28,8 +28,8 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef AUDIOINPUT_H_
-#define AUDIOINPUT_H_
+#ifndef MUMBLE_MUMBLE_AUDIOINPUT_H_
+#define MUMBLE_MUMBLE_AUDIOINPUT_H_
 
 #include <boost/shared_ptr.hpp>
 #include <speex/speex.h>
@@ -46,6 +46,8 @@
 #include "Message.h"
 
 class AudioInput;
+class CELTCodec;
+struct CELTEncoder;
 struct OpusEncoder;
 typedef boost::shared_ptr<AudioInput> AudioInputPtr;
 
@@ -95,6 +97,7 @@ class AudioInput : public QThread {
 		void resetAudioProcessor();
 
 		OpusEncoder *opusState;
+		bool selectCodec();
 		int encodeOpusFrame(short *source, int size, unsigned char *buffer);
 		int encodeSpeexFrame(short *pSource, unsigned char *buffer);
 		int encodeCELTFrame(short *pSource, unsigned char *buffer);
@@ -119,9 +122,6 @@ class AudioInput : public QThread {
 		CELTCodec *cCodec;
 		CELTEncoder *ceEncoder;
 
-		SpeexBits sbBits;
-		void *esSpeex;
-
 		int iAudioQuality;
 		int iAudioFrames;
 
@@ -145,16 +145,17 @@ class AudioInput : public QThread {
 		int iFrameCounter;
 		int iSilentFrames;
 		int iHoldFrames;
+		int iBufferedFrames;
 
 		QList<QByteArray> qlFrames;
 		void flushCheck(const QByteArray &, bool terminator);
 
 		void initializeMixer();
 
-		static bool preferCELT(int bitrate, int frames);
 		static void adjustBandwidth(int bitspersec, int &bitrate, int &frames);
 	signals:
 		void doDeaf();
+		void doMute();
 	public:
 		bool bResetProcessor;
 

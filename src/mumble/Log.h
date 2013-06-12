@@ -29,8 +29,8 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef LOG_H_
-#define LOG_H_
+#ifndef MUMBLE_MUMBLE_LOG_H_
+#define MUMBLE_MUMBLE_LOG_H_
 
 #include <QtCore/QDate>
 #include <QtGui/QTextCursor>
@@ -83,6 +83,8 @@ class Log : public QObject {
 		unsigned int uiLastId;
 		QDate qdDate;
 		static const QStringList allowedSchemes();
+		void postNotification(MsgType mt, const QString &console, const QString &plain);
+		void postQtNotification(MsgType mt, const QString &plain);
 	public:
 		Log(QObject *p = NULL);
 		QString msgName(MsgType t) const;
